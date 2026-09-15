@@ -10,6 +10,7 @@ interface ImportMetaEnv {
   readonly VITE_STRAVA_CLIENT_ID: string;
   readonly VITE_STRAVA_REDIRECT_URI: string;
   readonly VITE_ENABLE_STRAVA: string;
+  readonly VITE_ENABLE_COACH: string;
 }
 
 interface ImportMeta {

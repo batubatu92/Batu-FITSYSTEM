@@ -4,4 +4,5 @@ export const paths = {
   disciplineScores: (uid: string) => `users/${uid}/disciplineScores`,
   disciplineScore: (uid: string, date: string) => `users/${uid}/disciplineScores/${date}`,
   stravaConnection: (uid: string) => `users/${uid}/connections/strava`,
+  userProfile: (uid: string) => `users/${uid}`,
 };

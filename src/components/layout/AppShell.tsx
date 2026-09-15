@@ -1,7 +1,12 @@
 import { NavLink, Outlet } from 'react-router-dom';
 
+// Coach chat needs the askCoach Cloud Function (Anthropic key) deployed;
+// gated off until that's set up so there's no dead nav item in the meantime.
+const COACH_ENABLED = import.meta.env.VITE_ENABLE_COACH === 'true';
+
 const navItems = [
   { to: '/', label: 'Hoy' },
+  ...(COACH_ENABLED ? [{ to: '/coach', label: 'Coach' }] : []),
   { to: '/settings', label: 'Ajustes' },
 ];
 

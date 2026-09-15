@@ -5,13 +5,15 @@ import { onCall, onRequest, HttpsError } from 'firebase-functions/v2/https';
 import { defineSecret, defineString } from 'firebase-functions/params';
 import { scoreFromIndicators } from './discipline.js';
 import { exchangeStravaCode } from './strava.js';
+import { buildSystemPrompt, callClaude } from './coach.js';
 
 initializeApp();
 const db = getFirestore();
 
 const STRAVA_CLIENT_ID = defineSecret('STRAVA_CLIENT_ID');
 const STRAVA_CLIENT_SECRET = defineSecret('STRAVA_CLIENT_SECRET');
-const APP_URL = defineString('APP_URL', { default: 'https://batu-fit-system.web.app' });
+const ANTHROPIC_API_KEY = defineSecret('ANTHROPIC_API_KEY');
+const APP_URL = defineString('APP_URL', { default: 'https://batu-fit-system-54661.web.app' });
 
 // Strava's free-tier app rate limit effectively caps us at 10 connected athletes.
 const MAX_STRAVA_ATHLETES = 10;
@@ -36,6 +38,59 @@ export const onDailyCheckInWrite = onDocumentWritten(
     );
   },
 );
+
+const MAX_CHAT_MESSAGES = 20;
+const MAX_MESSAGE_LENGTH = 4000;
+const COACH_HISTORY_DAYS = 14;
+
+export const askCoach = onCall({ secrets: [ANTHROPIC_API_KEY] }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+  }
+  const uid = request.auth.uid;
+  const messages = request.data?.messages;
+  if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_CHAT_MESSAGES) {
+    throw new HttpsError('invalid-argument', 'Mensajes inválidos.');
+  }
+  for (const m of messages) {
+    if (
+      !m ||
+      (m.role !== 'user' && m.role !== 'assistant') ||
+      typeof m.content !== 'string' ||
+      m.content.length === 0 ||
+      m.content.length > MAX_MESSAGE_LENGTH
+    ) {
+      throw new HttpsError('invalid-argument', 'Mensajes inválidos.');
+    }
+  }
+
+  const [profileSnap, checkInsSnap] = await Promise.all([
+    db.doc(`users/${uid}`).get(),
+    db
+      .collection(`users/${uid}/dailyCheckIns`)
+      .orderBy('date', 'desc')
+      .limit(COACH_HISTORY_DAYS)
+      .get(),
+  ]);
+
+  const recentDays = checkInsSnap.docs
+    .map((d) => {
+      const data = d.data();
+      const { score, checkedCount } = scoreFromIndicators(data.indicators);
+      return { date: data.date as string, score, checkedCount };
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const system = buildSystemPrompt({ profile: profileSnap.data(), recentDays });
+
+  try {
+    const reply = await callClaude(ANTHROPIC_API_KEY.value(), system, messages);
+    return { reply };
+  } catch (err) {
+    console.error('askCoach failed', err);
+    throw new HttpsError('internal', 'Batu AI Coach no está disponible ahora mismo.');
+  }
+});
 
 export const createStravaOAuthState = onCall(async (request) => {
   if (!request.auth) {

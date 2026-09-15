@@ -28,3 +28,16 @@ export interface StravaConnection {
   connectedAt?: unknown;
   updatedAt?: unknown;
 }
+
+export interface UserProfile {
+  goal?: string;
+  trainingLevel?: string;
+  restrictions?: string;
+  notes?: string;
+  updatedAt?: unknown;
+}
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}

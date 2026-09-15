@@ -1,5 +1,7 @@
 import type { User } from 'firebase/auth';
 import { useStravaConnection } from '../hooks/useStravaConnection';
+import { useUserProfile } from '../hooks/useUserProfile';
+import { ProfileForm } from '../components/settings/ProfileForm';
 
 interface Props {
   user: User;
@@ -12,6 +14,7 @@ const STRAVA_ENABLED = import.meta.env.VITE_ENABLE_STRAVA === 'true';
 
 export function SettingsPage({ user, onSignOut }: Props) {
   const { connection, connectStrava, starting } = useStravaConnection(user.uid);
+  const { profile, loading: profileLoading, saveProfile } = useUserProfile(user.uid);
 
   return (
     <div className="flex flex-col gap-6">
@@ -19,6 +22,8 @@ export function SettingsPage({ user, onSignOut }: Props) {
         <h1 className="text-xl font-bold text-slate-50">Ajustes</h1>
         <p className="text-sm text-slate-400">{user.email}</p>
       </header>
+
+      {!profileLoading && <ProfileForm profile={profile} onSave={saveProfile} />}
 
       {STRAVA_ENABLED && (
         <section className="rounded-xl border border-base-border bg-base-surface p-4">

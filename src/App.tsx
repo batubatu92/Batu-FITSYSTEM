@@ -4,6 +4,7 @@ import { SignInScreen } from './components/auth/SignInScreen';
 import { AppShell } from './components/layout/AppShell';
 import { TodayPage } from './pages/TodayPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { CoachPage } from './pages/CoachPage';
 
 export default function App() {
   const { user, loading, signInWithGoogle, signOut } = useAuthUser();
@@ -20,6 +21,7 @@ export default function App() {
     <Routes>
       <Route element={<AppShell />}>
         <Route index element={<TodayPage user={user} />} />
+        <Route path="coach" element={<CoachPage />} />
         <Route path="settings" element={<SettingsPage user={user} onSignOut={signOut} />} />
       </Route>
     </Routes>
