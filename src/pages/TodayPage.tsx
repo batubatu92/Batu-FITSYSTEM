@@ -4,8 +4,10 @@ import { DisciplineScoreRing } from '../components/today/DisciplineScoreRing';
 import { IndicatorGrid } from '../components/today/IndicatorGrid';
 import { StreakBadge } from '../components/today/StreakBadge';
 import { BatuCoachCard } from '../components/today/BatuCoachCard';
+import { QuoteCard } from '../components/today/QuoteCard';
 import { useTodayCheckIn } from '../hooks/useTodayCheckIn';
 import { useStreak } from '../hooks/useStreak';
+import { useRotatingQuote } from '../hooks/useRotatingQuote';
 import { missingLabels, scoreFromIndicators } from '../lib/discipline';
 import { getCoachMessage } from '../lib/coach';
 
@@ -16,6 +18,7 @@ interface Props {
 export function TodayPage({ user }: Props) {
   const { indicators, loading, toggleIndicator } = useTodayCheckIn(user.uid);
   const streak = useStreak(user.uid);
+  const quote = useRotatingQuote();
 
   const score = useMemo(() => scoreFromIndicators(indicators), [indicators]);
   const missing = useMemo(() => missingLabels(indicators), [indicators]);
@@ -35,6 +38,7 @@ export function TodayPage({ user }: Props) {
         <h1 className="text-xl font-bold text-slate-50">Hoy</h1>
       </header>
 
+      <QuoteCard quote={quote} />
       <DisciplineScoreRing score={score} />
       <StreakBadge streak={streak} />
       <IndicatorGrid indicators={indicators} onToggle={toggleIndicator} />
