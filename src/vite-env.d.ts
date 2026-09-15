@@ -9,6 +9,7 @@ interface ImportMetaEnv {
   readonly VITE_FIREBASE_APP_ID: string;
   readonly VITE_STRAVA_CLIENT_ID: string;
   readonly VITE_STRAVA_REDIRECT_URI: string;
+  readonly VITE_ENABLE_STRAVA: string;
 }
 
 interface ImportMeta {
