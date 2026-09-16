@@ -574,7 +574,6 @@ ningún bloque \`\`\`recipe\`\`\`.`;
 
 interface CheckInSummary {
   date: string;
-  checkedCount: number;
   score: number;
 }
 
@@ -609,7 +608,7 @@ export function buildSystemPrompt(ctx: CoachContext): string {
     : '(el usuario todavía no ha rellenado su perfil, pregúntale si hace falta)';
 
   const historyLines = ctx.recentDays.length
-    ? ctx.recentDays.map((d) => `${d.date}: ${d.checkedCount}/6 indicadores (${d.score}%)`).join('\n')
+    ? ctx.recentDays.map((d) => `${d.date}: ${d.score}% de disciplina`).join('\n')
     : '(sin historial reciente de check-ins)';
 
   return `${SYSTEM_PROMPT}\n\n${RECIPE_FORMAT_INSTRUCTIONS}\n\nPerfil del usuario:\n${profileLines}\n\nÚltimos días de disciplina:\n${historyLines}`;

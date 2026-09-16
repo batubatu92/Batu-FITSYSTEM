@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { DEFAULT_GLASS_ML } from '../../lib/discipline';
 import type { UserProfile } from '../../types';
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 
 const GOALS = ['Perder grasa', 'Ganar músculo', 'Rendimiento deportivo', 'Salud general'];
 const LEVELS = ['Principiante', 'Intermedio', 'Avanzado'];
+const GLASS_SIZES = [150, 200, 250, 300, 330, 500];
 
 export function ProfileForm({ profile, onSave }: Props) {
   const [obstacle, setObstacle] = useState(profile.obstacle ?? '');
@@ -17,6 +19,7 @@ export function ProfileForm({ profile, onSave }: Props) {
   const [goal, setGoal] = useState(profile.goal ?? '');
   const [restrictions, setRestrictions] = useState(profile.restrictions ?? '');
   const [notes, setNotes] = useState(profile.notes ?? '');
+  const [glassSizeMl, setGlassSizeMl] = useState(profile.glassSizeMl ?? DEFAULT_GLASS_ML);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -28,13 +31,23 @@ export function ProfileForm({ profile, onSave }: Props) {
     setGoal(profile.goal ?? '');
     setRestrictions(profile.restrictions ?? '');
     setNotes(profile.notes ?? '');
+    setGlassSizeMl(profile.glassSizeMl ?? DEFAULT_GLASS_ML);
   }, [profile]);
 
   const handleSave = async () => {
     setSaving(true);
     setSaved(false);
     try {
-      await onSave({ obstacle, failureDays, streakBreakReason, trainingLevel, goal, restrictions, notes });
+      await onSave({
+        obstacle,
+        failureDays,
+        streakBreakReason,
+        trainingLevel,
+        goal,
+        restrictions,
+        notes,
+        glassSizeMl,
+      });
       setSaved(true);
     } finally {
       setSaving(false);
@@ -106,6 +119,21 @@ export function ProfileForm({ profile, onSave }: Props) {
           {GOALS.map((g) => (
             <option key={g} value={g}>
               {g}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="flex flex-col gap-1 text-sm text-slate-300">
+        Tamaño de tu vaso o botella habitual
+        <select
+          value={glassSizeMl}
+          onChange={(e) => setGlassSizeMl(Number(e.target.value))}
+          className="rounded-lg border border-base-border bg-base-bg p-2 text-slate-100"
+        >
+          {GLASS_SIZES.map((ml) => (
+            <option key={ml} value={ml}>
+              {ml} ml
             </option>
           ))}
         </select>

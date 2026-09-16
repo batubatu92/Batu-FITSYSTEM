@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, onSnapshot, orderBy, query, limit as fbLimit } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { paths } from '../firebase/paths';
-import { computeStreak, scoreFromIndicators } from '../lib/discipline';
+import { computeStreak, scoreFromValues } from '../lib/discipline';
 import { todayKey } from '../lib/dates';
 import type { DailyCheckIn } from '../types';
 
@@ -22,7 +22,7 @@ export function useStreak(uid: string | undefined) {
       const scoresByDate: Record<string, number> = {};
       snap.docs.forEach((d) => {
         const data = d.data() as DailyCheckIn;
-        scoresByDate[data.date] = scoreFromIndicators(data.indicators);
+        scoresByDate[data.date] = scoreFromValues(data.indicators);
       });
       setStreak(computeStreak(scoresByDate, todayKey()));
     });

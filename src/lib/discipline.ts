@@ -1,4 +1,4 @@
-import type { IndicatorKey, IndicatorMap } from '../types';
+import type { DailyIndicatorValues, IndicatorKey, NutritionLevel } from '../types';
 import { addDays, dateKey, parseKey } from './dates';
 
 export const INDICATORS: { key: IndicatorKey; label: string; emoji: string; description: string }[] = [
@@ -6,56 +6,95 @@ export const INDICATORS: { key: IndicatorKey; label: string; emoji: string; desc
     key: 'training',
     label: 'Entrenamiento',
     emoji: '\u{1F3CB}',
-    description: 'Fuerza o cardio, mínimo 20 min',
+    description: 'Minutos reales entrenando, objetivo 20 min',
   },
   {
     key: 'nutrition',
     label: 'Nutrición',
     emoji: '\u{1F957}',
-    description: 'Comida real, sin ultraprocesados, todo el día',
+    description: 'Cómo has comido hoy, en general',
   },
   {
     key: 'sleep',
     label: 'Sueño',
     emoji: '\u{1F634}',
-    description: '7 horas o más',
+    description: 'Horas dormidas, objetivo 7h',
   },
   {
     key: 'hydration',
     label: 'Hidratación',
     emoji: '\u{1F4A7}',
-    description: '2 litros de agua o más',
+    description: 'Vasos de agua, objetivo 2 litros',
   },
   {
     key: 'mindset',
     label: 'Mentalidad',
     emoji: '\u{1F9E0}',
-    description: '10 min de meditación, journaling o desconexión de pantallas',
+    description: 'Minutos de meditación, journaling o desconexión, objetivo 10 min',
   },
   {
     key: 'movement',
     label: 'Movimiento',
     emoji: '\u{1F6B6}',
-    description: 'Moverte fuera del entreno: caminar, subir escaleras...',
+    description: 'Pasos dados, objetivo 10.000',
   },
 ];
 
-// A day "counts" toward the streak once at least this % of indicators are checked.
+export const NUTRITION_LEVELS: { value: NutritionLevel; label: string; percent: number }[] = [
+  { value: 'excesos', label: 'Excesos', percent: 25 },
+  { value: 'normal', label: 'Normal', percent: 60 },
+  { value: 'picoteo', label: 'Picoteo controlado', percent: 80 },
+  { value: 'muy_limpio', label: 'Muy limpio', percent: 100 },
+];
+
+export const DEFAULT_GLASS_ML = 250;
+
+export const TARGETS = {
+  training: 20, // minutes
+  sleep: 7, // hours
+  hydration: 2, // liters
+  mindset: 10, // minutes
+  movement: 10000, // steps
+};
+
+// A day "counts" toward the streak once the average of the 6 pillars hits this.
 export const DISCIPLINE_THRESHOLD = 80;
 
-export function scoreFromIndicators(indicators: Partial<IndicatorMap> | undefined): number {
-  if (!indicators) return 0;
-  const checked = INDICATORS.filter((i) => indicators[i.key]).length;
-  return Math.round((checked / INDICATORS.length) * 100);
+function clampPercent(value: number, target: number): number {
+  if (!target || target <= 0) return 0;
+  return Math.min(100, Math.max(0, Math.round((value / target) * 100)));
 }
 
-export function checkedCountFromIndicators(indicators: Partial<IndicatorMap> | undefined): number {
-  if (!indicators) return 0;
-  return INDICATORS.filter((i) => indicators[i.key]).length;
+export function percentagesFromValues(
+  values: Partial<DailyIndicatorValues> | undefined,
+): Record<IndicatorKey, number> {
+  const v = values ?? {};
+  const glassMl = v.hydrationGlassMl ?? DEFAULT_GLASS_ML;
+  const hydrationLiters = ((v.hydrationGlasses ?? 0) * glassMl) / 1000;
+  const nutritionPercent = NUTRITION_LEVELS.find((l) => l.value === v.nutritionLevel)?.percent ?? 0;
+
+  return {
+    training: clampPercent(v.trainingMinutes ?? 0, TARGETS.training),
+    nutrition: nutritionPercent,
+    sleep: clampPercent(v.sleepHours ?? 0, TARGETS.sleep),
+    hydration: clampPercent(hydrationLiters, TARGETS.hydration),
+    mindset: clampPercent(v.mindsetMinutes ?? 0, TARGETS.mindset),
+    movement: clampPercent(v.movementSteps ?? 0, TARGETS.movement),
+  };
 }
 
-export function missingLabels(indicators: Partial<IndicatorMap> | undefined): string[] {
-  return INDICATORS.filter((i) => !indicators?.[i.key]).map((i) => i.label);
+export function scoreFromValues(values: Partial<DailyIndicatorValues> | undefined): number {
+  const pcts = percentagesFromValues(values);
+  const total = INDICATORS.reduce((sum, i) => sum + pcts[i.key], 0);
+  return Math.round(total / INDICATORS.length);
+}
+
+/** Labels of the pillars furthest from 100%, ascending — for coach messaging. */
+export function neediestLabels(values: Partial<DailyIndicatorValues> | undefined): string[] {
+  const pcts = percentagesFromValues(values);
+  return INDICATORS.filter((i) => pcts[i.key] < 100)
+    .sort((a, b) => pcts[a.key] - pcts[b.key])
+    .map((i) => i.label);
 }
 
 /**

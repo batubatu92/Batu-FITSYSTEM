@@ -18,7 +18,7 @@ export function getCoachMessage({ score, streak, missing }: CoachInput): string 
       : '💯 Día perfecto. Así se construye disciplina.';
   }
   if (score === 0) {
-    return 'Hoy no has marcado nada todavía. Elige un indicador y arranca — el primer check es el más importante.';
+    return 'Hoy no has registrado nada todavía. Empieza por un pilar cualquiera — lo primero es lo más importante.';
   }
   if (score >= DISCIPLINE_THRESHOLD) {
     return `Vas muy bien (${score}%). Solo te falta: ${missing.join(', ')}.`;

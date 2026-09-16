@@ -3,11 +3,11 @@ import { doc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { paths } from '../firebase/paths';
 import { todayKey } from '../lib/dates';
-import type { IndicatorKey, IndicatorMap } from '../types';
+import type { DailyIndicatorValues } from '../types';
 
 export function useTodayCheckIn(uid: string | undefined) {
   const today = useMemo(() => todayKey(), []);
-  const [indicators, setIndicators] = useState<Partial<IndicatorMap>>({});
+  const [values, setValues] = useState<Partial<DailyIndicatorValues>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,23 +15,22 @@ export function useTodayCheckIn(uid: string | undefined) {
     setLoading(true);
     const ref = doc(db, paths.dailyCheckIn(uid, today));
     return onSnapshot(ref, (snap) => {
-      setIndicators(snap.data()?.indicators ?? {});
+      setValues(snap.data()?.indicators ?? {});
       setLoading(false);
     });
   }, [uid, today]);
 
-  const toggleIndicator = async (key: IndicatorKey) => {
+  const updateValues = async (patch: Partial<DailyIndicatorValues>) => {
     if (!uid) return;
     const ref = doc(db, paths.dailyCheckIn(uid, today));
-    const nextValue = !indicators[key];
     // Optimistic update: onSnapshot will confirm it right after.
-    setIndicators((prev) => ({ ...prev, [key]: nextValue }));
+    setValues((prev) => ({ ...prev, ...patch }));
     await setDoc(
       ref,
-      { date: today, indicators: { [key]: nextValue }, updatedAt: serverTimestamp() },
+      { date: today, indicators: patch, updatedAt: serverTimestamp() },
       { merge: true },
     );
   };
 
-  return { today, indicators, loading, toggleIndicator };
+  return { today, values, loading, updateValues };
 }

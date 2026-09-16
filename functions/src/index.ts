@@ -41,9 +41,9 @@ export const onDailyCheckInWrite = onDocumentWritten(
       return;
     }
 
-    const { score, checkedCount } = scoreFromIndicators(after.data()?.indicators);
+    const { score } = scoreFromIndicators(after.data()?.indicators);
     await scoreRef.set(
-      { date, score, checkedCount, computedAt: FieldValue.serverTimestamp() },
+      { date, score, computedAt: FieldValue.serverTimestamp() },
       { merge: true },
     );
   },
@@ -92,8 +92,8 @@ export const askCoach = onCall({ secrets: [ANTHROPIC_API_KEY] }, async (request)
   const recentDays = checkInsSnap.docs
     .map((d) => {
       const data = d.data();
-      const { score, checkedCount } = scoreFromIndicators(data.indicators);
-      return { date: data.date as string, score, checkedCount };
+      const { score } = scoreFromIndicators(data.indicators);
+      return { date: data.date as string, score };
     })
     .sort((a, b) => a.date.localeCompare(b.date));
 
