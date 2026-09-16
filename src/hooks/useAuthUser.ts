@@ -11,10 +11,12 @@ import {
 import { auth } from '../firebase/config';
 
 // Home-screen-installed PWAs have no reliable window to pop up into, so they
-// need the redirect flow. A normal browser tab uses popup instead: Safari's
-// redirect flow bounces through the authDomain (firebaseapp.com), and ITP
-// blocks sharing the sign-in state back with a different origin (web.app),
-// silently dropping the user back on the sign-in screen.
+// use the redirect flow; a normal browser tab uses popup for a smoother UX.
+// Both only work because VITE_FIREBASE_AUTH_DOMAIN is set to this app's own
+// Hosting domain (not the default *.firebaseapp.com) — Firebase Hosting
+// proxies the /__/auth/* handler on whatever domain it serves, so keeping
+// auth same-origin avoids Safari ITP blocking the sign-in state from
+// crossing between two different Google-owned domains.
 function isStandalone() {
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
