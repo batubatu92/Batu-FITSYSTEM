@@ -26,7 +26,7 @@ export function SettingsPage({ user, onSignOut }: Props) {
       {!profileLoading && <ProfileForm profile={profile} onSave={saveProfile} />}
 
       {STRAVA_ENABLED && (
-        <section className="rounded-xl border border-base-border bg-base-surface p-4">
+        <section className="rounded-xl border border-base-border bg-base-surface p-4 shadow-lg shadow-black/30">
           <div className="mb-2 flex items-center justify-between">
             <span className="font-semibold text-slate-200">Strava</span>
             <span className={`text-xs ${connection?.connected ? 'text-accent' : 'text-slate-500'}`}>

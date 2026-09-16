@@ -36,7 +36,7 @@ export function ProfileForm({ profile, onSave }: Props) {
   };
 
   return (
-    <section className="flex flex-col gap-3 rounded-xl border border-base-border bg-base-surface p-4">
+    <section className="flex flex-col gap-3 rounded-xl border border-base-border bg-base-surface p-4 shadow-lg shadow-black/30">
       <span className="font-semibold text-slate-200">Tu perfil</span>
       <p className="text-xs text-slate-500">
         Esto lo usa Batu AI Coach para personalizar sus recomendaciones.
@@ -97,7 +97,7 @@ export function ProfileForm({ profile, onSave }: Props) {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="rounded-lg bg-accent py-2 text-sm font-semibold text-base-bg disabled:opacity-60"
+        className="rounded-lg bg-gradient-to-r from-flame-from to-flame-to py-2 text-sm font-semibold text-base-bg shadow-md shadow-black/30 disabled:opacity-60"
       >
         {saving ? 'Guardando…' : saved ? 'Guardado ✓' : 'Guardar perfil'}
       </button>

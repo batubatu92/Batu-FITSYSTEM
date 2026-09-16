@@ -8,7 +8,7 @@ const SATIETY_LABEL: Record<string, string> = {
 
 export function RecipeCard({ recipe }: { recipe: Recipe }) {
   return (
-    <div className="max-w-[92%] rounded-xl border border-base-border bg-base-surface p-4">
+    <div className="max-w-[92%] rounded-xl border border-base-border bg-base-surface p-4 shadow-lg shadow-black/30">
       <p className="text-xs uppercase tracking-wide text-slate-500">Receta</p>
       <h3 className="mt-1 text-lg font-bold text-slate-50">{recipe.title}</h3>
 

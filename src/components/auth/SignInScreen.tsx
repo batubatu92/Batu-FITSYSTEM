@@ -12,7 +12,7 @@ export function SignInScreen({ onSignIn, authError }: Props) {
       </div>
       <button
         onClick={onSignIn}
-        className="rounded-full bg-accent px-6 py-3 font-semibold text-base-bg transition hover:brightness-110"
+        className="rounded-full bg-gradient-to-r from-flame-from to-flame-to px-6 py-3 font-semibold text-base-bg shadow-lg shadow-black/30 transition hover:brightness-110"
       >
         Entrar con Google
       </button>

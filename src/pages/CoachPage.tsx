@@ -43,7 +43,7 @@ export function CoachPage() {
                 ) : (
                   <div
                     key={j}
-                    className="whitespace-pre-wrap rounded-xl bg-base-surface p-3 text-sm text-slate-200"
+                    className="whitespace-pre-wrap rounded-xl bg-base-surface p-3 text-sm text-slate-200 shadow-md shadow-black/20"
                   >
                     {part.text}
                   </div>
@@ -67,7 +67,7 @@ export function CoachPage() {
         <button
           onClick={handleSend}
           disabled={sending || !draft.trim()}
-          className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-base-bg disabled:opacity-60"
+          className="rounded-lg bg-gradient-to-r from-flame-from to-flame-to px-4 py-2 text-sm font-semibold text-base-bg shadow-md shadow-black/30 disabled:opacity-60"
         >
           Enviar
         </button>

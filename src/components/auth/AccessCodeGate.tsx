@@ -41,7 +41,7 @@ export function AccessCodeGate({ onRedeem, onSignOut }: Props) {
       <button
         onClick={handleSubmit}
         disabled={submitting || !code.trim()}
-        className="w-full max-w-xs rounded-full bg-accent px-6 py-3 font-semibold text-base-bg disabled:opacity-60"
+        className="w-full max-w-xs rounded-full bg-gradient-to-r from-flame-from to-flame-to px-6 py-3 font-semibold text-base-bg shadow-lg shadow-black/30 disabled:opacity-60"
       >
         {submitting ? 'Comprobando…' : 'Entrar'}
       </button>

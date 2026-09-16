@@ -1,13 +1,43 @@
 import type { IndicatorKey, IndicatorMap } from '../types';
 import { addDays, dateKey, parseKey } from './dates';
 
-export const INDICATORS: { key: IndicatorKey; label: string; emoji: string }[] = [
-  { key: 'training', label: 'Entrenamiento', emoji: '\u{1F3CB}' },
-  { key: 'nutrition', label: 'Nutrición', emoji: '\u{1F957}' },
-  { key: 'sleep', label: 'Sueño', emoji: '\u{1F634}' },
-  { key: 'hydration', label: 'Hidratación', emoji: '\u{1F4A7}' },
-  { key: 'mindset', label: 'Mentalidad', emoji: '\u{1F9E0}' },
-  { key: 'movement', label: 'Movimiento', emoji: '\u{1F6B6}' },
+export const INDICATORS: { key: IndicatorKey; label: string; emoji: string; description: string }[] = [
+  {
+    key: 'training',
+    label: 'Entrenamiento',
+    emoji: '\u{1F3CB}',
+    description: 'Fuerza o cardio, mínimo 20 min',
+  },
+  {
+    key: 'nutrition',
+    label: 'Nutrición',
+    emoji: '\u{1F957}',
+    description: 'Comida real, sin ultraprocesados, todo el día',
+  },
+  {
+    key: 'sleep',
+    label: 'Sueño',
+    emoji: '\u{1F634}',
+    description: '7 horas o más',
+  },
+  {
+    key: 'hydration',
+    label: 'Hidratación',
+    emoji: '\u{1F4A7}',
+    description: '2 litros de agua o más',
+  },
+  {
+    key: 'mindset',
+    label: 'Mentalidad',
+    emoji: '\u{1F9E0}',
+    description: '10 min de meditación, journaling o desconexión de pantallas',
+  },
+  {
+    key: 'movement',
+    label: 'Movimiento',
+    emoji: '\u{1F6B6}',
+    description: 'Moverte fuera del entreno: caminar, subir escaleras...',
+  },
 ];
 
 // A day "counts" toward the streak once at least this % of indicators are checked.

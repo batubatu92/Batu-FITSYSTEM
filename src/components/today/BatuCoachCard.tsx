@@ -4,7 +4,7 @@ interface Props {
 
 export function BatuCoachCard({ message }: Props) {
   return (
-    <div className="rounded-xl border border-base-border bg-base-surface p-4">
+    <div className="rounded-xl border border-base-border bg-base-surface p-4 shadow-lg shadow-black/30">
       <div className="mb-1 flex items-center gap-2">
         <span className="text-lg">🤖</span>
         <span className="text-sm font-semibold text-slate-200">Batu AI Coach</span>

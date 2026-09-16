@@ -11,8 +11,17 @@ export function DisciplineScoreRing({ score }: Props) {
   const offset = CIRCUMFERENCE * (1 - score / 100);
 
   return (
-    <div className="relative mx-auto" style={{ width: SIZE, height: SIZE }}>
+    <div
+      className="relative mx-auto rounded-full"
+      style={{ width: SIZE, height: SIZE, filter: 'drop-shadow(0 0 24px rgba(255,138,61,0.25))' }}
+    >
       <svg width={SIZE} height={SIZE} className="-rotate-90">
+        <defs>
+          <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ffb020" />
+            <stop offset="100%" stopColor="#ff4d4d" />
+          </linearGradient>
+        </defs>
         <circle
           cx={SIZE / 2}
           cy={SIZE / 2}
@@ -26,7 +35,7 @@ export function DisciplineScoreRing({ score }: Props) {
           cy={SIZE / 2}
           r={RADIUS}
           fill="none"
-          stroke="#7cf25c"
+          stroke="url(#scoreGradient)"
           strokeWidth={STROKE}
           strokeLinecap="round"
           strokeDasharray={CIRCUMFERENCE}
