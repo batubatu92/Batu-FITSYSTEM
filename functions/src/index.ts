@@ -5,14 +5,14 @@ import { onCall, onRequest, HttpsError } from 'firebase-functions/v2/https';
 import { defineSecret, defineString } from 'firebase-functions/params';
 import { scoreFromIndicators } from './discipline.js';
 import { exchangeStravaCode } from './strava.js';
-import { buildSystemPrompt, callGemini } from './coach.js';
+import { buildSystemPrompt, callClaude } from './coach.js';
 
 initializeApp();
 const db = getFirestore();
 
 const STRAVA_CLIENT_ID = defineSecret('STRAVA_CLIENT_ID');
 const STRAVA_CLIENT_SECRET = defineSecret('STRAVA_CLIENT_SECRET');
-const GEMINI_API_KEY = defineSecret('GEMINI_API_KEY');
+const ANTHROPIC_API_KEY = defineSecret('ANTHROPIC_API_KEY');
 const APP_URL = defineString('APP_URL', { default: 'https://batu-fit-system-54661.web.app' });
 
 // Strava's free-tier app rate limit effectively caps us at 10 connected athletes.
@@ -43,7 +43,7 @@ const MAX_CHAT_MESSAGES = 20;
 const MAX_MESSAGE_LENGTH = 4000;
 const COACH_HISTORY_DAYS = 14;
 
-export const askCoach = onCall({ secrets: [GEMINI_API_KEY] }, async (request) => {
+export const askCoach = onCall({ secrets: [ANTHROPIC_API_KEY] }, async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
   }
@@ -84,7 +84,7 @@ export const askCoach = onCall({ secrets: [GEMINI_API_KEY] }, async (request) =>
   const system = buildSystemPrompt({ profile: profileSnap.data(), recentDays });
 
   try {
-    const reply = await callGemini(GEMINI_API_KEY.value(), system, messages);
+    const reply = await callClaude(ANTHROPIC_API_KEY.value(), system, messages);
     return { reply };
   } catch (err) {
     console.error('askCoach failed', err);

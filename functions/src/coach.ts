@@ -56,38 +56,31 @@ interface CoachMessage {
   content: string;
 }
 
-const GEMINI_MODEL = 'gemini-flash-latest';
-
-export async function callGemini(
+export async function callClaude(
   apiKey: string,
   system: string,
   messages: CoachMessage[],
 ): Promise<string> {
-  const contents = messages.map((m) => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }],
-  }));
-
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: system }] },
-        contents,
-      }),
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
     },
-  );
+    body: JSON.stringify({
+      model: 'claude-sonnet-5',
+      max_tokens: 1024,
+      system,
+      messages,
+    }),
+  });
 
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Gemini API error (${res.status}): ${body}`);
+    throw new Error(`Claude API error (${res.status}): ${body}`);
   }
 
-  const data = (await res.json()) as {
-    candidates?: { content?: { parts?: { text?: string }[] } }[];
-  };
-  const parts = data.candidates?.[0]?.content?.parts ?? [];
-  return parts.map((p) => p.text ?? '').join('');
+  const data = (await res.json()) as { content: { type: string; text?: string }[] };
+  return data.content.find((c) => c.type === 'text')?.text ?? '';
 }
