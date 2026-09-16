@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getFunctions } from 'firebase/functions';
 
@@ -14,5 +14,8 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+// Explicit, even though it's already the default: keep the session on this
+// device across app restarts/reloads until the user signs out.
+void setPersistence(auth, browserLocalPersistence);
 export const db = getFirestore(app);
 export const functions = getFunctions(app);
