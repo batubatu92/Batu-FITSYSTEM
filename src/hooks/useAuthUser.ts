@@ -19,9 +19,13 @@ import { auth } from '../firebase/config';
 export function useAuthUser() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
-    getRedirectResult(auth).catch((err) => console.error('Redirect sign-in failed', err));
+    getRedirectResult(auth).catch((err) => {
+      console.error('Redirect sign-in failed', err);
+      setAuthError(`${err.code ?? 'unknown'}: ${err.message ?? err}`);
+    });
     return onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoading(false);
@@ -31,5 +35,5 @@ export function useAuthUser() {
   const signInWithGoogle = () => signInWithRedirect(auth, new GoogleAuthProvider());
   const signOut = () => firebaseSignOut(auth);
 
-  return { user, loading, signInWithGoogle, signOut };
+  return { user, loading, authError, signInWithGoogle, signOut };
 }

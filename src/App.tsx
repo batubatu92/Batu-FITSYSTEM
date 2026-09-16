@@ -7,14 +7,14 @@ import { SettingsPage } from './pages/SettingsPage';
 import { CoachPage } from './pages/CoachPage';
 
 export default function App() {
-  const { user, loading, signInWithGoogle, signOut } = useAuthUser();
+  const { user, loading, authError, signInWithGoogle, signOut } = useAuthUser();
 
   if (loading) {
     return <div className="flex h-full items-center justify-center text-slate-400">Cargando…</div>;
   }
 
   if (!user) {
-    return <SignInScreen onSignIn={signInWithGoogle} />;
+    return <SignInScreen onSignIn={signInWithGoogle} authError={authError} />;
   }
 
   return (

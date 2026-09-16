@@ -1,8 +1,9 @@
 interface Props {
   onSignIn: () => void;
+  authError?: string | null;
 }
 
-export function SignInScreen({ onSignIn }: Props) {
+export function SignInScreen({ onSignIn, authError }: Props) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-6 px-6 text-center">
       <div>
@@ -15,6 +16,11 @@ export function SignInScreen({ onSignIn }: Props) {
       >
         Entrar con Google
       </button>
+      {authError && (
+        <p className="max-w-xs break-words rounded-lg border border-red-900 bg-red-950/50 p-3 text-xs text-red-300">
+          {authError}
+        </p>
+      )}
     </div>
   );
 }
