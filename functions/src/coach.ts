@@ -580,8 +580,11 @@ interface CheckInSummary {
 
 interface CoachContext {
   profile?: {
-    goal?: string;
+    obstacle?: string;
+    failureDays?: string;
+    streakBreakReason?: string;
     trainingLevel?: string;
+    goal?: string;
     restrictions?: string;
     notes?: string;
   };
@@ -590,12 +593,16 @@ interface CoachContext {
 
 export function buildSystemPrompt(ctx: CoachContext): string {
   const p = ctx.profile;
-  const profileLines = p && (p.goal || p.trainingLevel || p.restrictions || p.notes)
+  const hasProfile = p && (p.obstacle || p.failureDays || p.streakBreakReason || p.trainingLevel || p.goal || p.restrictions || p.notes);
+  const profileLines = hasProfile
     ? [
-        p.goal && `- Objetivo: ${p.goal}`,
-        p.trainingLevel && `- Nivel: ${p.trainingLevel}`,
-        p.restrictions && `- Restricciones: ${p.restrictions}`,
-        p.notes && `- Notas: ${p.notes}`,
+        p?.obstacle && `- Mayor obstáculo: ${p.obstacle}`,
+        p?.failureDays && `- Días donde suele fallar: ${p.failureDays}`,
+        p?.streakBreakReason && `- Por qué se le suelen romper las rachas: ${p.streakBreakReason}`,
+        p?.trainingLevel && `- Nivel de entrenamiento: ${p.trainingLevel}`,
+        p?.goal && `- Objetivo estético (secundario, no el foco principal): ${p.goal}`,
+        p?.restrictions && `- Restricciones: ${p.restrictions}`,
+        p?.notes && `- Notas: ${p.notes}`,
       ]
         .filter(Boolean)
         .join('\n')

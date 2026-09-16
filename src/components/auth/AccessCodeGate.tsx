@@ -27,7 +27,7 @@ export function AccessCodeGate({ onRedeem, onSignOut }: Props) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
       <h1 className="text-2xl font-bold text-slate-50">Acceso por invitación</h1>
-      <p className="max-w-xs text-sm text-slate-400">
+      <p className="max-w-xs text-sm text-slate-300">
         Batu Fit System está en fase privada. Introduce el código que te han pasado.
       </p>
       <input
@@ -46,7 +46,7 @@ export function AccessCodeGate({ onRedeem, onSignOut }: Props) {
         {submitting ? 'Comprobando…' : 'Entrar'}
       </button>
       {error && <p className="text-sm text-red-400">{error}</p>}
-      <button onClick={onSignOut} className="text-xs text-slate-500 underline">
+      <button onClick={onSignOut} className="text-xs text-slate-400 underline">
         Cerrar sesión
       </button>
     </div>

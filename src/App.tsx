@@ -13,7 +13,7 @@ export default function App() {
   const { unlocked, redeemCode } = useAccessStatus(user?.uid);
 
   if (loading) {
-    return <div className="flex h-full items-center justify-center text-slate-400">Cargando…</div>;
+    return <div className="flex h-full items-center justify-center text-slate-300">Cargando…</div>;
   }
 
   if (!user) {
@@ -21,7 +21,7 @@ export default function App() {
   }
 
   if (unlocked === null) {
-    return <div className="flex h-full items-center justify-center text-slate-400">Cargando…</div>;
+    return <div className="flex h-full items-center justify-center text-slate-300">Cargando…</div>;
   }
 
   if (!unlocked) {

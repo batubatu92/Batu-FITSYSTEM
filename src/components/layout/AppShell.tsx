@@ -23,7 +23,7 @@ export function AppShell() {
             to={item.to}
             end
             className={({ isActive }) =>
-              `text-sm font-medium ${isActive ? 'text-accent' : 'text-slate-400'}`
+              `text-sm font-medium ${isActive ? 'text-accent' : 'text-slate-300'}`
             }
           >
             {item.label}

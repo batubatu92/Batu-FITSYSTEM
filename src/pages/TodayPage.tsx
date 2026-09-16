@@ -28,13 +28,13 @@ export function TodayPage({ user }: Props) {
   );
 
   if (loading) {
-    return <p className="text-center text-slate-400">Cargando…</p>;
+    return <p className="text-center text-slate-300">Cargando…</p>;
   }
 
   return (
     <div className="flex flex-col gap-6">
       <header className="text-center">
-        <p className="text-sm text-slate-400">Hola, {user.displayName?.split(' ')[0] ?? 'atleta'}</p>
+        <p className="text-sm text-slate-300">Hola, {user.displayName?.split(' ')[0] ?? 'atleta'}</p>
         <h1 className="text-xl font-bold text-slate-50">Hoy</h1>
       </header>
 

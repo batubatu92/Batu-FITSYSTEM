@@ -30,8 +30,11 @@ export interface StravaConnection {
 }
 
 export interface UserProfile {
-  goal?: string;
+  obstacle?: string;
+  failureDays?: string;
+  streakBreakReason?: string;
   trainingLevel?: string;
+  goal?: string;
   restrictions?: string;
   notes?: string;
   updatedAt?: unknown;

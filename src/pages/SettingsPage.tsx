@@ -20,7 +20,7 @@ export function SettingsPage({ user, onSignOut }: Props) {
     <div className="flex flex-col gap-6">
       <header>
         <h1 className="text-xl font-bold text-slate-50">Ajustes</h1>
-        <p className="text-sm text-slate-400">{user.email}</p>
+        <p className="text-sm text-slate-300">{user.email}</p>
       </header>
 
       {!profileLoading && <ProfileForm profile={profile} onSave={saveProfile} />}
@@ -29,12 +29,12 @@ export function SettingsPage({ user, onSignOut }: Props) {
         <section className="rounded-xl border border-base-border bg-base-surface p-4 shadow-lg shadow-black/30">
           <div className="mb-2 flex items-center justify-between">
             <span className="font-semibold text-slate-200">Strava</span>
-            <span className={`text-xs ${connection?.connected ? 'text-accent' : 'text-slate-500'}`}>
+            <span className={`text-xs ${connection?.connected ? 'text-accent' : 'text-slate-400'}`}>
               {connection?.connected ? 'Conectado' : 'No conectado'}
             </span>
           </div>
           {connection?.connected ? (
-            <p className="text-sm text-slate-400">Athlete ID: {connection.athleteId}</p>
+            <p className="text-sm text-slate-300">Athlete ID: {connection.athleteId}</p>
           ) : (
             <button
               onClick={connectStrava}
@@ -49,7 +49,7 @@ export function SettingsPage({ user, onSignOut }: Props) {
 
       <button
         onClick={onSignOut}
-        className="rounded-lg border border-base-border py-2 text-sm text-slate-400"
+        className="rounded-lg border border-base-border py-2 text-sm text-slate-300"
       >
         Cerrar sesión
       </button>

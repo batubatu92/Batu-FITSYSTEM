@@ -43,9 +43,18 @@ export function DisciplineScoreRing({ score }: Props) {
           style={{ transition: 'stroke-dashoffset 300ms ease' }}
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-bold text-slate-50">{score}</span>
-        <span className="text-xs uppercase tracking-wide text-slate-400">Discipline Score</span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+        {score === 0 ? (
+          <>
+            <span className="text-2xl">☀️</span>
+            <span className="mt-1 text-sm font-semibold text-slate-200">Tu día empieza ahora</span>
+          </>
+        ) : (
+          <>
+            <span className="text-4xl font-bold text-slate-50">{score}</span>
+            <span className="text-xs uppercase tracking-wide text-slate-300">Discipline Score</span>
+          </>
+        )}
       </div>
     </div>
   );
