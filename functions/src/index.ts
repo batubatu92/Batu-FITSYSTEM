@@ -1,7 +1,8 @@
 import { initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { onCall, onRequest, HttpsError } from 'firebase-functions/v2/https';
+import { onCall, onRequest, HttpsError, type CallableRequest } from 'firebase-functions/v2/https';
 import { defineSecret, defineString } from 'firebase-functions/params';
 import { scoreFromIndicators } from './discipline.js';
 import { exchangeStravaCode } from './strava.js';
@@ -9,6 +10,15 @@ import { buildSystemPrompt, callClaude } from './coach.js';
 
 initializeApp();
 const db = getFirestore();
+
+// The one person who owns this app; gates the admin-only functions below.
+const ADMIN_EMAIL = 'entrenandoconketo@gmail.com';
+
+function assertAdmin(request: CallableRequest) {
+  if (!request.auth || request.auth.token.email !== ADMIN_EMAIL) {
+    throw new HttpsError('permission-denied', 'Solo el administrador puede hacer esto.');
+  }
+}
 
 const STRAVA_CLIENT_ID = defineSecret('STRAVA_CLIENT_ID');
 const STRAVA_CLIENT_SECRET = defineSecret('STRAVA_CLIENT_SECRET');
@@ -130,6 +140,41 @@ export const redeemAccessCode = onCall(async (request) => {
   });
 
   return { unlocked: true };
+});
+
+export const listUsers = onCall(async (request) => {
+  assertAdmin(request);
+
+  const { users } = await getAuth().listUsers(1000);
+  const accessSnaps = await Promise.all(
+    users.map((u) => db.doc(`users/${u.uid}/access/status`).get()),
+  );
+
+  return {
+    users: users.map((u, i) => {
+      const access = accessSnaps[i].data();
+      return {
+        uid: u.uid,
+        email: u.email ?? null,
+        displayName: u.displayName ?? null,
+        createdAt: u.metadata.creationTime,
+        lastLoginAt: u.metadata.lastSignInTime,
+        unlocked: access?.unlocked === true,
+        code: access?.code ?? null,
+      };
+    }),
+  };
+});
+
+export const revokeAccess = onCall(async (request) => {
+  assertAdmin(request);
+
+  const uid = String(request.data?.uid ?? '');
+  if (!uid) {
+    throw new HttpsError('invalid-argument', 'Falta uid.');
+  }
+  await db.doc(`users/${uid}/access/status`).set({ unlocked: false }, { merge: true });
+  return { ok: true };
 });
 
 export const createStravaOAuthState = onCall(async (request) => {

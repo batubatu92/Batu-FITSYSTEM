@@ -4,13 +4,18 @@ import { NavLink, Outlet } from 'react-router-dom';
 // gated off until that's set up so there's no dead nav item in the meantime.
 const COACH_ENABLED = import.meta.env.VITE_ENABLE_COACH === 'true';
 
-const navItems = [
-  { to: '/', label: 'Hoy' },
-  ...(COACH_ENABLED ? [{ to: '/coach', label: 'Coach' }] : []),
-  { to: '/settings', label: 'Ajustes' },
-];
+interface Props {
+  isAdmin?: boolean;
+}
 
-export function AppShell() {
+export function AppShell({ isAdmin }: Props) {
+  const navItems = [
+    { to: '/', label: 'Hoy' },
+    ...(COACH_ENABLED ? [{ to: '/coach', label: 'Coach' }] : []),
+    { to: '/settings', label: 'Ajustes' },
+    ...(isAdmin ? [{ to: '/admin', label: 'Admin' }] : []),
+  ];
+
   return (
     <div className="mx-auto flex h-full max-w-md flex-col">
       <main className="flex-1 overflow-y-auto px-4 pb-24 pt-8">

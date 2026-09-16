@@ -7,6 +7,9 @@ import { AppShell } from './components/layout/AppShell';
 import { TodayPage } from './pages/TodayPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { CoachPage } from './pages/CoachPage';
+import { AdminPage } from './pages/AdminPage';
+
+const ADMIN_EMAIL = 'entrenandoconketo@gmail.com';
 
 export default function App() {
   const { user, loading, authError, signInWithGoogle, signOut } = useAuthUser();
@@ -28,12 +31,15 @@ export default function App() {
     return <AccessCodeGate onRedeem={redeemCode} onSignOut={signOut} />;
   }
 
+  const isAdmin = user.email === ADMIN_EMAIL;
+
   return (
     <Routes>
-      <Route element={<AppShell />}>
+      <Route element={<AppShell isAdmin={isAdmin} />}>
         <Route index element={<TodayPage user={user} />} />
         <Route path="coach" element={<CoachPage />} />
         <Route path="settings" element={<SettingsPage user={user} onSignOut={signOut} />} />
+        {isAdmin && <Route path="admin" element={<AdminPage />} />}
       </Route>
     </Routes>
   );
