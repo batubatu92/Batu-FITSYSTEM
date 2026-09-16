@@ -48,6 +48,12 @@ export const askCoach = onCall({ secrets: [ANTHROPIC_API_KEY] }, async (request)
     throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
   }
   const uid = request.auth.uid;
+
+  const accessSnap = await db.doc(`users/${uid}/access/status`).get();
+  if (accessSnap.data()?.unlocked !== true) {
+    throw new HttpsError('permission-denied', 'Necesitas un código de acceso.');
+  }
+
   const messages = request.data?.messages;
   if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_CHAT_MESSAGES) {
     throw new HttpsError('invalid-argument', 'Mensajes inválidos.');
@@ -90,6 +96,40 @@ export const askCoach = onCall({ secrets: [ANTHROPIC_API_KEY] }, async (request)
     console.error('askCoach failed', err);
     throw new HttpsError('internal', 'Batu AI Coach no está disponible ahora mismo.');
   }
+});
+
+export const redeemAccessCode = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+  }
+  const uid = request.auth.uid;
+  const code = String(request.data?.code ?? '').trim().toUpperCase();
+  if (!code) {
+    throw new HttpsError('invalid-argument', 'Introduce un código.');
+  }
+
+  const codeRef = db.doc(`accessCodes/${code}`);
+  const accessRef = db.doc(`users/${uid}/access/status`);
+
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(codeRef);
+    if (!snap.exists) {
+      throw new HttpsError('not-found', 'Código no válido.');
+    }
+    const data = snap.data() as { active?: boolean; maxUses?: number | null; usedCount?: number };
+    if (data.active === false) {
+      throw new HttpsError('failed-precondition', 'Este código ya no está activo.');
+    }
+    const usedCount = data.usedCount ?? 0;
+    if (data.maxUses != null && usedCount >= data.maxUses) {
+      throw new HttpsError('resource-exhausted', 'Este código ha alcanzado su límite de usos.');
+    }
+
+    tx.update(codeRef, { usedCount: FieldValue.increment(1) });
+    tx.set(accessRef, { unlocked: true, code, unlockedAt: FieldValue.serverTimestamp() });
+  });
+
+  return { unlocked: true };
 });
 
 export const createStravaOAuthState = onCall(async (request) => {

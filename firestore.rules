@@ -33,6 +33,18 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Gates access to the app; only the redeemAccessCode Cloud Function may
+    // set unlocked, so a client can never grant itself access directly.
+    match /users/{uid}/access/{doc} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+
+    // Invite codes: usage counters are only mutated by redeemAccessCode.
+    match /accessCodes/{code} {
+      allow read, write: if false;
+    }
+
     // Raw OAuth tokens and pending OAuth state never touch client rules.
     match /stravaTokens/{uid} {
       allow read, write: if false;

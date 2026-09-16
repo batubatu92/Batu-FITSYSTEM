@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useCoachChat } from '../hooks/useCoachChat';
+import { parseMessageParts } from '../lib/parseRecipes';
+import { RecipeCard } from '../components/coach/RecipeCard';
 
 export function CoachPage() {
   const { messages, sending, error, sendMessage } = useCoachChat();
@@ -25,18 +27,31 @@ export function CoachPage() {
             Prueba con: "¿Qué entreno hoy?" o "Dame un menú del día sin ultraprocesados".
           </p>
         )}
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`max-w-[85%] whitespace-pre-wrap rounded-xl p-3 text-sm ${
-              m.role === 'user'
-                ? 'ml-auto bg-accent/20 text-slate-100'
-                : 'mr-auto bg-base-surface text-slate-200'
-            }`}
-          >
-            {m.content}
-          </div>
-        ))}
+        {messages.map((m, i) =>
+          m.role === 'user' ? (
+            <div
+              key={i}
+              className="ml-auto max-w-[85%] whitespace-pre-wrap rounded-xl bg-accent/20 p-3 text-sm text-slate-100"
+            >
+              {m.content}
+            </div>
+          ) : (
+            <div key={i} className="mr-auto flex max-w-[92%] flex-col gap-2">
+              {parseMessageParts(m.content).map((part, j) =>
+                part.type === 'recipe' ? (
+                  <RecipeCard key={j} recipe={part.recipe} />
+                ) : (
+                  <div
+                    key={j}
+                    className="whitespace-pre-wrap rounded-xl bg-base-surface p-3 text-sm text-slate-200"
+                  >
+                    {part.text}
+                  </div>
+                ),
+              )}
+            </div>
+          ),
+        )}
         {sending && <p className="text-sm text-slate-500">Batu está escribiendo…</p>}
         {error && <p className="text-sm text-red-400">{error}</p>}
       </div>
