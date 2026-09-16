@@ -49,64 +49,69 @@ export const onDailyCheckInWrite = onDocumentWritten(
   },
 );
 
-const MAX_CHAT_MESSAGES = 20;
+// Keep in sync with MAX_STORED_MESSAGES in src/hooks/useCoachChat.ts — the
+// client trims history to that many messages before sending.
+const MAX_CHAT_MESSAGES = 30;
 const MAX_MESSAGE_LENGTH = 4000;
 const COACH_HISTORY_DAYS = 14;
 
-export const askCoach = onCall({ secrets: [ANTHROPIC_API_KEY] }, async (request) => {
-  if (!request.auth) {
-    throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
-  }
-  const uid = request.auth.uid;
+export const askCoach = onCall(
+  { secrets: [ANTHROPIC_API_KEY], timeoutSeconds: 120 },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
+    }
+    const uid = request.auth.uid;
 
-  const accessSnap = await db.doc(`users/${uid}/access/status`).get();
-  if (accessSnap.data()?.unlocked !== true) {
-    throw new HttpsError('permission-denied', 'Necesitas un código de acceso.');
-  }
+    const accessSnap = await db.doc(`users/${uid}/access/status`).get();
+    if (accessSnap.data()?.unlocked !== true) {
+      throw new HttpsError('permission-denied', 'Necesitas un código de acceso.');
+    }
 
-  const messages = request.data?.messages;
-  if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_CHAT_MESSAGES) {
-    throw new HttpsError('invalid-argument', 'Mensajes inválidos.');
-  }
-  for (const m of messages) {
-    if (
-      !m ||
-      (m.role !== 'user' && m.role !== 'assistant') ||
-      typeof m.content !== 'string' ||
-      m.content.length === 0 ||
-      m.content.length > MAX_MESSAGE_LENGTH
-    ) {
+    const messages = request.data?.messages;
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_CHAT_MESSAGES) {
       throw new HttpsError('invalid-argument', 'Mensajes inválidos.');
     }
-  }
+    for (const m of messages) {
+      if (
+        !m ||
+        (m.role !== 'user' && m.role !== 'assistant') ||
+        typeof m.content !== 'string' ||
+        m.content.length === 0 ||
+        m.content.length > MAX_MESSAGE_LENGTH
+      ) {
+        throw new HttpsError('invalid-argument', 'Mensajes inválidos.');
+      }
+    }
 
-  const [profileSnap, checkInsSnap] = await Promise.all([
-    db.doc(`users/${uid}`).get(),
-    db
-      .collection(`users/${uid}/dailyCheckIns`)
-      .orderBy('date', 'desc')
-      .limit(COACH_HISTORY_DAYS)
-      .get(),
-  ]);
+    const [profileSnap, checkInsSnap] = await Promise.all([
+      db.doc(`users/${uid}`).get(),
+      db
+        .collection(`users/${uid}/dailyCheckIns`)
+        .orderBy('date', 'desc')
+        .limit(COACH_HISTORY_DAYS)
+        .get(),
+    ]);
 
-  const recentDays = checkInsSnap.docs
-    .map((d) => {
-      const data = d.data();
-      const { score } = scoreFromIndicators(data.indicators);
-      return { date: data.date as string, score };
-    })
-    .sort((a, b) => a.date.localeCompare(b.date));
+    const recentDays = checkInsSnap.docs
+      .map((d) => {
+        const data = d.data();
+        const { score } = scoreFromIndicators(data.indicators);
+        return { date: data.date as string, score };
+      })
+      .sort((a, b) => a.date.localeCompare(b.date));
 
-  const system = buildSystemPrompt({ profile: profileSnap.data(), recentDays });
+    const system = buildSystemPrompt({ profile: profileSnap.data(), recentDays });
 
-  try {
-    const reply = await callClaude(ANTHROPIC_API_KEY.value(), system, messages);
-    return { reply };
-  } catch (err) {
-    console.error('askCoach failed', err);
-    throw new HttpsError('internal', 'Batu AI Coach no está disponible ahora mismo.');
-  }
-});
+    try {
+      const reply = await callClaude(ANTHROPIC_API_KEY.value(), system, messages);
+      return { reply };
+    } catch (err) {
+      console.error('askCoach failed', err);
+      throw new HttpsError('internal', 'Batu AI Coach no está disponible ahora mismo.');
+    }
+  },
+);
 
 export const redeemAccessCode = onCall(async (request) => {
   if (!request.auth) {

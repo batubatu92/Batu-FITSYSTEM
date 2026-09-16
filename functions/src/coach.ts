@@ -619,12 +619,19 @@ interface CoachMessage {
   content: string;
 }
 
-export async function callClaude(
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Anthropic occasionally returns 429 (rate limit) or 529 (overloaded) under
+// load; both are transient, so retry once before giving up instead of
+// immediately surfacing "Batu no está disponible" to the user.
+const RETRYABLE_STATUS = new Set([429, 529]);
+
+async function requestClaude(
   apiKey: string,
   system: string,
   messages: CoachMessage[],
-): Promise<string> {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+): Promise<Response> {
+  return fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'x-api-key': apiKey,
@@ -638,6 +645,19 @@ export async function callClaude(
       messages,
     }),
   });
+}
+
+export async function callClaude(
+  apiKey: string,
+  system: string,
+  messages: CoachMessage[],
+): Promise<string> {
+  let res = await requestClaude(apiKey, system, messages);
+
+  if (!res.ok && RETRYABLE_STATUS.has(res.status)) {
+    await sleep(1500);
+    res = await requestClaude(apiKey, system, messages);
+  }
 
   if (!res.ok) {
     const body = await res.text();

@@ -37,7 +37,7 @@ export default function App() {
     <Routes>
       <Route element={<AppShell isAdmin={isAdmin} />}>
         <Route index element={<TodayPage user={user} />} />
-        <Route path="coach" element={<CoachPage />} />
+        <Route path="coach" element={<CoachPage user={user} />} />
         <Route path="settings" element={<SettingsPage user={user} onSignOut={signOut} />} />
         {isAdmin && <Route path="admin" element={<AdminPage />} />}
       </Route>

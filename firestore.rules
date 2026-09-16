@@ -40,6 +40,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Batu AI Coach conversation history, persisted client-side so it
+    // survives reloads/reinstalls; never touched by the Cloud Function.
+    match /users/{uid}/coachChat/{doc} {
+      allow read, write: if isOwner(uid);
+    }
+
     // Invite codes: usage counters are only mutated by redeemAccessCode.
     match /accessCodes/{code} {
       allow read, write: if false;

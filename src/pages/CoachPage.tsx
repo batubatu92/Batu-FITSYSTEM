@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { User } from 'firebase/auth';
 import { useCoachChat } from '../hooks/useCoachChat';
 import { parseMessageParts } from '../lib/parseRecipes';
 import { RecipeCard } from '../components/coach/RecipeCard';
@@ -10,8 +11,14 @@ const STARTER_PROMPTS = [
   'Motívame',
 ];
 
-export function CoachPage() {
-  const { messages, sending, error, sendMessage } = useCoachChat();
+interface Props {
+  user: User;
+}
+
+export function CoachPage({ user }: Props) {
+  const { messages, loadingHistory, sending, error, sendMessage, clearChat } = useCoachChat(
+    user.uid,
+  );
   const [draft, setDraft] = useState('');
 
   const handleSend = (text?: string) => {
@@ -23,13 +30,29 @@ export function CoachPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="text-center">
-        <h1 className="text-xl font-bold text-slate-50">Batu AI Coach</h1>
-        <p className="text-sm text-slate-300">Entreno, nutrición real, rutina. Pregúntale.</p>
+      <header className="flex items-center justify-between">
+        <div className="w-10" />
+        <div className="text-center">
+          <h1 className="text-xl font-bold text-slate-50">Batu AI Coach</h1>
+          <p className="text-sm text-slate-300">Entreno, nutrición real, rutina. Pregúntale.</p>
+        </div>
+        {messages.length > 0 ? (
+          <button
+            onClick={() => void clearChat()}
+            title="Nueva conversación"
+            className="w-10 text-right text-xs text-slate-400"
+          >
+            Borrar
+          </button>
+        ) : (
+          <div className="w-10" />
+        )}
       </header>
 
+      {loadingHistory && <p className="text-center text-sm text-slate-400">Cargando conversación…</p>}
+
       <div className="flex flex-col gap-3">
-        {messages.length === 0 && (
+        {!loadingHistory && messages.length === 0 && (
           <div className="flex flex-col items-center gap-3 pt-4">
             <p className="text-center text-sm text-slate-400">Elige algo para empezar, o escribe lo tuyo:</p>
             <div className="flex flex-wrap justify-center gap-2">
