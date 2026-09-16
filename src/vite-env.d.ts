@@ -11,6 +11,7 @@ interface ImportMetaEnv {
   readonly VITE_STRAVA_REDIRECT_URI: string;
   readonly VITE_ENABLE_STRAVA: string;
   readonly VITE_ENABLE_COACH: string;
+  readonly VITE_GOOGLE_OAUTH_CLIENT_ID: string;
 }
 
 interface ImportMeta {
