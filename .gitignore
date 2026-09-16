@@ -3,6 +3,8 @@ dist/
 dist-ssr/
 .env
 .env.local
+# Not secret (just the Hosting URL for OAuth redirects), safe to commit.
+!functions/.env
 *.local
 .firebase/
 firebase-debug.log

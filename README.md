@@ -5,7 +5,8 @@ App de disciplina diaria: React (Vite) + Firebase, instalable como PWA.
 ## Modelo de datos (Firestore)
 
 ```
-users/{uid}/dailyCheckIns/{YYYY-MM-DD}   { date, indicators: { training, nutrition, sleep, hydration, mindset, movement }, updatedAt }
+users/{uid}                               { goal, trainingLevel, restrictions, notes, updatedAt }  // perfil, editable por el usuario
+users/{uid}/dailyCheckIns/{YYYY-MM-DD}    { date, indicators: { training, nutrition, sleep, hydration, mindset, movement }, updatedAt }
 users/{uid}/disciplineScores/{YYYY-MM-DD} { date, score, checkedCount, computedAt }   // escrito solo por la Cloud Function
 users/{uid}/connections/strava            { connected, athleteId, scope, connectedAt } // escrito solo por la Cloud Function
 stravaTokens/{uid}                        // tokens crudos, nunca legibles desde el cliente
@@ -14,7 +15,8 @@ stravaOAuthStates/{stateId}               // estado CSRF de un solo uso para el 
 
 - **Discipline Score** = `checkedCount / 6 * 100`, calculado en el cliente para respuesta instantánea y espejado por `onDailyCheckInWrite` en `disciplineScores` para uso futuro (histórico, notificaciones, etc.).
 - **Racha** = días consecutivos con score ≥ 80%, calculada en el cliente (`src/lib/discipline.ts`) sobre los últimos 60 `dailyCheckIns`.
-- **Batu AI Coach** (`src/lib/coach.ts`) es v1 basado en reglas; está aislado en una función pura para poder sustituirlo por una llamada a una Cloud Function con LLM sin tocar la UI.
+- **Frase del día** (`src/lib/quotes.ts`): una frase de disciplina distinta cada vez que se abre la app.
+- **Batu AI Coach chat** (`functions/src/coach.ts`, función `askCoach`): llama a la API de Claude con un system prompt enfocado en comida real / sin ultraprocesados / rutina matutina, inyectando el perfil del usuario y sus últimos 14 días de check-ins como contexto. El chat es efímero (no se persiste el historial todavía). Gateado por `VITE_ENABLE_COACH`.
 
 ## Desarrollo local
 
@@ -37,12 +39,17 @@ cd functions
 npm install
 ```
 
-Secrets necesarios (Strava, ver abajo):
+Necesita el proyecto en **plan Blaze** (pago por uso; las cuotas gratuitas no cambian, solo hace falta tarjeta vinculada — recomendable poner una alerta de presupuesto).
+
+Secrets necesarios:
 
 ```bash
 firebase functions:secrets:set STRAVA_CLIENT_ID
 firebase functions:secrets:set STRAVA_CLIENT_SECRET
+firebase functions:secrets:set ANTHROPIC_API_KEY
 ```
+
+`functions/.env` fija `APP_URL` (el dominio de Hosting, usado para las redirecciones del flujo de Strava).
 
 Deploy:
 
