@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Batu Fit System — Admin</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #0f1115;
+        color: #f1f5f9;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      }
+      .wrap {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 32px 16px 80px;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 4px;
+      }
+      .sub {
+        color: #94a3b8;
+        font-size: 0.9rem;
+        margin-bottom: 24px;
+      }
+      button {
+        font: inherit;
+        cursor: pointer;
+        border: none;
+      }
+      .btn-primary {
+        background: linear-gradient(90deg, #ffb020, #ff4d4d);
+        color: #0f1115;
+        font-weight: 600;
+        padding: 12px 24px;
+        border-radius: 999px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      }
+      .card {
+        background: #171a21;
+        border: 1px solid #262b36;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .name {
+        font-weight: 600;
+      }
+      .email,
+      .meta {
+        color: #94a3b8;
+        font-size: 0.8rem;
+      }
+      .badge {
+        flex-shrink: 0;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+      .badge-on {
+        background: rgba(255, 138, 61, 0.2);
+        color: #ff8a3d;
+      }
+      .badge-off {
+        background: rgba(100, 116, 139, 0.3);
+        color: #94a3b8;
+      }
+      .revoke {
+        margin-top: 10px;
+        background: rgba(127, 29, 29, 0.4);
+        border: 1px solid #7f1d1d;
+        color: #fca5a5;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+      }
+      #error {
+        color: #fca5a5;
+        font-size: 0.9rem;
+      }
+      #count {
+        color: #94a3b8;
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Batu Fit System</h1>
+      <p class="sub">Panel de administración</p>
+      <div id="signed-out">
+        <button id="signin" class="btn-primary">Entrar con Google</button>
+      </div>
+      <div id="signed-in" style="display: none">
+        <p id="count"></p>
+        <div id="users"></div>
+      </div>
+      <p id="error"></p>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+      import {
+        getAuth,
+        GoogleAuthProvider,
+        signInWithCredential,
+        onAuthStateChanged,
+      } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+      import {
+        getFunctions,
+        httpsCallable,
+      } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-functions.js';
+
+      const firebaseConfig = {
+        apiKey: 'AIzaSyAHY5bdtazIzJX5U3I7_F20X3X_tMd9aTI',
+        authDomain: 'batu-fit-system-54661.web.app',
+        projectId: 'batu-fit-system-54661',
+        storageBucket: 'batu-fit-system-54661.firebasestorage.app',
+        messagingSenderId: '966716630493',
+        appId: '1:966716630493:web:0b3fc22516de232ce58234',
+      };
+      const GOOGLE_OAUTH_CLIENT_ID =
+        '966716630493-5j7u95ifhk9htk0b385pmvsfh7s3imh9.apps.googleusercontent.com';
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const functions = getFunctions(app);
+
+      const signedOutEl = document.getElementById('signed-out');
+      const signedInEl = document.getElementById('signed-in');
+      const usersEl = document.getElementById('users');
+      const countEl = document.getElementById('count');
+      const errorEl = document.getElementById('error');
+
+      function showError(msg) {
+        errorEl.textContent = msg;
+      }
+
+      function formatDate(value) {
+        if (!value) return '—';
+        return new Date(value).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+      }
+
+      async function loadUsers() {
+        showError('');
+        usersEl.innerHTML = 'Cargando…';
+        try {
+          const listUsers = httpsCallable(functions, 'listUsers');
+          const { data } = await listUsers();
+          countEl.textContent = `${data.users.length} cuentas registradas`;
+          usersEl.innerHTML = '';
+          for (const u of data.users) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+              <div class="row">
+                <div>
+                  <div class="name">${u.displayName ?? '(sin nombre)'}</div>
+                  <div class="email">${u.email ?? 'sin email'}</div>
+                </div>
+                <span class="badge ${u.unlocked ? 'badge-on' : 'badge-off'}">
+                  ${u.unlocked ? `Activo (${u.code ?? ''})` : 'Sin acceso'}
+                </span>
+              </div>
+              <div class="meta">Registrado: ${formatDate(u.createdAt)} · Último login: ${formatDate(u.lastLoginAt)}</div>
+            `;
+            if (u.unlocked) {
+              const btn = document.createElement('button');
+              btn.className = 'revoke';
+              btn.textContent = 'Revocar acceso';
+              btn.onclick = async () => {
+                btn.disabled = true;
+                btn.textContent = 'Revocando…';
+                try {
+                  const revokeAccess = httpsCallable(functions, 'revokeAccess');
+                  await revokeAccess({ uid: u.uid });
+                  await loadUsers();
+                } catch (err) {
+                  showError(err.message ?? String(err));
+                }
+              };
+              card.appendChild(btn);
+            }
+            usersEl.appendChild(card);
+          }
+        } catch (err) {
+          showError(err.message ?? String(err));
+          usersEl.innerHTML = '';
+        }
+      }
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          signedOutEl.style.display = 'none';
+          signedInEl.style.display = 'block';
+          void loadUsers();
+        } else {
+          signedOutEl.style.display = 'block';
+          signedInEl.style.display = 'none';
+        }
+      });
+
+      document.getElementById('signin').addEventListener('click', () => {
+        showError('');
+        if (!window.google) {
+          showError('No se pudo cargar el inicio de sesión de Google. Recarga la página.');
+          return;
+        }
+        const tokenClient = window.google.accounts.oauth2.initTokenClient({
+          client_id: GOOGLE_OAUTH_CLIENT_ID,
+          scope: 'openid email profile',
+          callback: async (response) => {
+            if (!response.access_token) {
+              showError('No se pudo iniciar sesión.');
+              return;
+            }
+            try {
+              const credential = GoogleAuthProvider.credential(null, response.access_token);
+              await signInWithCredential(auth, credential);
+            } catch (err) {
+              showError(err.message ?? String(err));
+            }
+          },
+          error_callback: (err) => showError(err.type ?? String(err)),
+        });
+        tokenClient.requestAccessToken();
+      });
+    </script>
+  </body>
+</html>
