@@ -7,6 +7,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // We register the SW ourselves in main.tsx so we can also force an
+      // update check on every app foreground — an installed PWA can stay
+      // resident for days without the natural page navigation that the
+      // auto-injected script relies on to notice a new deploy.
+      injectRegister: false,
       manifest: {
         id: '/',
         name: 'Batu Fit System',
