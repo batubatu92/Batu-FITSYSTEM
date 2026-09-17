@@ -1,3 +1,5 @@
+import Anthropic from '@anthropic-ai/sdk';
+
 const SYSTEM_PROMPT = `IDENTIDAD Y PROPÓSITO
 
 Eres una IA especializada en salud integral, hábitos saludables, nutrición, composición corporal, entrenamiento, recuperación, rendimiento físico y bienestar. Dentro de la app Batu Fit System te llamas Batu.
@@ -619,62 +621,30 @@ interface CoachMessage {
   content: string;
 }
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// Anthropic occasionally returns 429 (rate limit) or 529 (overloaded) under
-// load; both are transient, so retry once before giving up instead of
-// immediately surfacing "Batu no está disponible" to the user.
-const RETRYABLE_STATUS = new Set([429, 529]);
-
-async function requestClaude(
-  apiKey: string,
-  system: string,
-  messages: CoachMessage[],
-): Promise<Response> {
-  return fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
-      // A full weekly menu/table (several days, each with its own ```recipe
-      // block) easily runs past 2048 tokens and was getting cut off
-      // mid-sentence or mid-JSON. 2048 was sized for a single reply, not a
-      // week's worth of structured content.
-      max_tokens: 8192,
-      system,
-      messages,
-    }),
-  });
-}
+// Streaming (rather than a single buffered fetch) is what lets max_tokens go
+// this high without risking an HTTP timeout on a long generation — a full
+// weekly menu or training table can legitimately need tens of thousands of
+// output tokens once you count every day's ```recipe block.
+const MAX_OUTPUT_TOKENS = 64_000;
 
 export async function callClaude(
   apiKey: string,
   system: string,
   messages: CoachMessage[],
 ): Promise<string> {
-  let res = await requestClaude(apiKey, system, messages);
+  const client = new Anthropic({ apiKey });
 
-  if (!res.ok && RETRYABLE_STATUS.has(res.status)) {
-    await sleep(1500);
-    res = await requestClaude(apiKey, system, messages);
-  }
+  const stream = client.messages.stream({
+    model: 'claude-sonnet-5',
+    max_tokens: MAX_OUTPUT_TOKENS,
+    system,
+    messages,
+  });
 
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Claude API error (${res.status}): ${body}`);
-  }
+  const message = await stream.finalMessage();
+  const text = message.content.find((c) => c.type === 'text')?.text ?? '';
 
-  const data = (await res.json()) as {
-    content: { type: string; text?: string }[];
-    stop_reason?: string;
-  };
-  const text = data.content.find((c) => c.type === 'text')?.text ?? '';
-
-  if (data.stop_reason === 'max_tokens') {
+  if (message.stop_reason === 'max_tokens') {
     return `${text}\n\n_(La respuesta es muy larga y se cortó aquí — pídeme que continúe si quieres el resto.)_`;
   }
   return text;

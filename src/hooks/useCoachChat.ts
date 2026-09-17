@@ -11,10 +11,10 @@ interface AskCoachResponse {
 // Keep the stored/sent history bounded: shorter Claude requests (cheaper,
 // faster) and a small Firestore doc regardless of how long a chat gets.
 const MAX_STORED_MESSAGES = 30;
-// Server-side timeoutSeconds on askCoach is 120s; give the client a little
+// Server-side timeoutSeconds on askCoach is 300s; give the client a little
 // more so a real server timeout always surfaces as an error, never an
 // indefinite "Batu está escribiendo…".
-const CALL_TIMEOUT_MS = 130_000;
+const CALL_TIMEOUT_MS = 310_000;
 
 export function useCoachChat(uid: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);

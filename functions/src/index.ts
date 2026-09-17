@@ -56,7 +56,9 @@ const MAX_MESSAGE_LENGTH = 4000;
 const COACH_HISTORY_DAYS = 14;
 
 export const askCoach = onCall(
-  { secrets: [ANTHROPIC_API_KEY], timeoutSeconds: 120 },
+  // max_tokens on the Claude request is high enough (64k) that a genuinely
+  // long generation (a full week of menus/training) needs real headroom.
+  { secrets: [ANTHROPIC_API_KEY], timeoutSeconds: 300 },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'Debes iniciar sesión.');
