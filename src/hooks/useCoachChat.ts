@@ -56,6 +56,9 @@ export function useCoachChat(uid: string) {
         { timeout: CALL_TIMEOUT_MS },
       );
       const { data } = await askCoach({ messages: next.slice(-MAX_STORED_MESSAGES) });
+      if (!data.reply?.trim()) {
+        throw new Error('empty reply');
+      }
       const withReply = [...next, { role: 'assistant' as const, content: data.reply }];
       setMessages(withReply);
       void persist(withReply);

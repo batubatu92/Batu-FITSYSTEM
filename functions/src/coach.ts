@@ -640,7 +640,11 @@ async function requestClaude(
     },
     body: JSON.stringify({
       model: 'claude-sonnet-5',
-      max_tokens: 2048,
+      // A full weekly menu/table (several days, each with its own ```recipe
+      // block) easily runs past 2048 tokens and was getting cut off
+      // mid-sentence or mid-JSON. 2048 was sized for a single reply, not a
+      // week's worth of structured content.
+      max_tokens: 8192,
       system,
       messages,
     }),
@@ -664,6 +668,14 @@ export async function callClaude(
     throw new Error(`Claude API error (${res.status}): ${body}`);
   }
 
-  const data = (await res.json()) as { content: { type: string; text?: string }[] };
-  return data.content.find((c) => c.type === 'text')?.text ?? '';
+  const data = (await res.json()) as {
+    content: { type: string; text?: string }[];
+    stop_reason?: string;
+  };
+  const text = data.content.find((c) => c.type === 'text')?.text ?? '';
+
+  if (data.stop_reason === 'max_tokens') {
+    return `${text}\n\n_(La respuesta es muy larga y se cortó aquí — pídeme que continúe si quieres el resto.)_`;
+  }
+  return text;
 }
